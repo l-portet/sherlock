@@ -25,7 +25,7 @@ I haven’t had time to create a proper extension yet, so we’ll inject the scr
 ## Notes
 
 - Not affiliated with TikTok, Instagram, or RapidAPI.  
-- There’s still a lot of room for improvement — I quickly vibe-coded it. Feel free to contribute!
+- There’s still a lot of room for improvement, I quickly vibe-coded it. Feel free to contribute!
 
 ## Contribute
 
