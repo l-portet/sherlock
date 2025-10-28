@@ -80,13 +80,13 @@ const getUsername = () => {
 };
 
 const setLoader = (msg) => {
-  const lbl = document.getElementById('loader-label');
+  const lbl = document.getElementById('sh_loader-label');
   if (lbl) lbl.textContent = msg || 'Loading…';
 };
 const showLoader = () =>
-  document.getElementById('stats-loader')?.classList.remove('hidden');
+  document.getElementById('sh_stats-loader')?.classList.remove('sh_hidden');
 const hideLoader = () =>
-  document.getElementById('stats-loader')?.classList.add('hidden');
+  document.getElementById('sh_stats-loader')?.classList.add('sh_hidden');
 
 // --- Normalize a TikTok post object to your schema --------------------------
 const normalizePost = (p) => {
@@ -159,8 +159,6 @@ const fetchUserIds = async () => {
 
   const data = await res.json();
 
-  // This API often returns success with statusCode/status_code = 0.
-  // Prefer the "userInfo.user" shape, then fallbacks.
   const u =
     data?.userInfo?.user ??
     data?.data?.userInfo?.user ??
@@ -298,7 +296,7 @@ const fetchPosts = async ({ secUid, userId }) => {
   return posts;
 };
 
-// --- Stats (same logic as your IG version) -----------------------------------
+// --- Stats -------------------------------------------------------------------
 const computeStats = (posts) => {
   if (cache.stats) {
     log.ok('Stats (cache)', cache.stats);
@@ -370,7 +368,7 @@ const computeStats = (posts) => {
   return stats;
 };
 
-// --- Activity grid helpers (unchanged) ---------------------------------------
+// --- Activity grid helpers ---------------------------------------------------
 const toISODate = (d) =>
   new Date(d.getFullYear(), d.getMonth(), d.getDate())
     .toISOString()
@@ -413,12 +411,12 @@ const levelFor = (count, max) => {
   return 4;
 };
 
-const tooltipEl = () => document.getElementById('igstats-tooltip'); // reuse same id
+const tooltipEl = () => document.getElementById('sh_igstats-tooltip');
 const showTooltip = (html, x, y) => {
   const tip = tooltipEl();
   if (!tip) return;
   tip.innerHTML = html;
-  tip.classList.remove('hidden');
+  tip.classList.remove('sh_hidden');
   positionTooltip(x, y);
 };
 const positionTooltip = (x, y) => {
@@ -433,106 +431,110 @@ const positionTooltip = (x, y) => {
   tip.style.left = `${nx}px`;
   tip.style.top = `${ny}px`;
 };
-const hideTooltip = () => tooltipEl()?.classList.add('hidden');
+const hideTooltip = () => tooltipEl()?.classList.add('sh_hidden');
 
 // --- Drawer UI ---------------------------------------------------------------
 const ensureDrawer = () => {
-  let drawer = document.getElementById('stats-drawer');
+  let drawer = document.getElementById('sh_stats-drawer');
   if (drawer) return drawer;
   drawer = document.createElement('div');
-  drawer.id = 'stats-drawer';
+  drawer.id = 'sh_stats-drawer';
   drawer.innerHTML = `
-    <div class="drawer-content">
-      <div class="drawer-header">
-        <h3>🔎 Sherlock - Influencer Stats</h3>
-        <div class="header-actions">
-          <button id="refresh-stats" title="Refresh">↻</button>
-          <button id="close-drawer" aria-label="Close">×</button>
+    <div class="sh_drawer-content">
+      <div class="sh_drawer-header">
+        <h3>📊 Influencer Stats</h3>
+        <div class="sh_header-actions">
+          <button id="sh_refresh-stats" title="Refresh">↻</button>
+          <button id="sh_close-drawer" aria-label="Close">×</button>
         </div>
       </div>
-      <div id="drawer-body">
-        <div class="loader hidden" id="stats-loader" aria-live="polite">
-          <div class="spinner"></div>
-          <div class="loader-label" id="loader-label">Loading…</div>
+      <div id="sh_drawer-body">
+        <div class="sh_loader sh_hidden" id="sh_stats-loader" aria-live="polite">
+          <div class="sh_spinner"></div>
+          <div class="sh_loader-label" id="sh_loader-label">Loading…</div>
         </div>
-        <div id="stats-cards" class="hidden"></div>
-        <div id="activity" class="hidden" style="--cell: 12px; --gap: 3px;">
-          <div class="activity-header">Activity (last ${DAYS_WINDOW} days)</div>
-          <div class="activity-layout fullwidth">
-            <div class="x-axis-top" id="x-axis-top"></div>
-            <div class="activity-grid" id="activity-grid" role="grid" aria-label="Posts in last ${DAYS_WINDOW} days"></div>
+        <div id="sh_stats-cards" class="sh_hidden"></div>
+        <div id="sh_activity" class="sh_hidden" style="--cell: 12px; --gap: 3px;">
+          <div class="sh_activity-header">Activity (last ${DAYS_WINDOW} days)</div>
+          <div class="sh_activity-layout sh_fullwidth">
+            <div class="sh_x-axis-top" id="sh_x-axis-top"></div>
+            <div class="sh_activity-grid" id="sh_activity-grid" role="grid" aria-label="Posts in last ${DAYS_WINDOW} days"></div>
           </div>
-          <div class="activity-legend">
+          <div class="sh_activity-legend">
             <span>0</span>
-            <span class="legend-box level-0"></span>
-            <span class="legend-box level-1"></span>
-            <span class="legend-box level-2"></span>
-            <span class="legend-box level-3"></span>
-            <span class="legend-box level-4"></span>
+            <span class="sh_legend-box sh_level-0"></span>
+            <span class="sh_legend-box sh_level-1"></span>
+            <span class="sh_legend-box sh_level-2"></span>
+            <span class="sh_legend-box sh_level-3"></span>
+            <span class="sh_legend-box sh_level-4"></span>
             <span>4+</span>
           </div>
         </div>
-        <div id="stats-error" class="hidden"></div>
-        <div id="igstats-tooltip" class="tooltip hidden" role="tooltip"></div>
+        <div id="sh_stats-error" class="sh_hidden"></div>
+        <div id="sh_igstats-tooltip" class="sh_tooltip sh_hidden" role="tooltip"></div>
       </div>
     </div>
   `;
   document.body.appendChild(drawer);
-  drawer.querySelector('#close-drawer').addEventListener('click', closeDrawer);
-  drawer.querySelector('#refresh-stats').addEventListener('click', async () => {
-    log.step('Refresh clicked → invalidate cache');
-    cache.posts = null;
-    cache.stats = null;
-    await fetchAndRenderStats(true);
-  });
+  drawer
+    .querySelector('#sh_close-drawer')
+    .addEventListener('click', closeDrawer);
+  drawer
+    .querySelector('#sh_refresh-stats')
+    .addEventListener('click', async () => {
+      log.step('Refresh clicked → invalidate cache');
+      cache.posts = null;
+      cache.stats = null;
+      await fetchAndRenderStats(true);
+    });
   return drawer;
 };
 
 const openDrawer = () => {
   const drawer = ensureDrawer();
-  drawer.classList.add('open');
+  drawer.classList.add('sh_open');
 };
 const closeDrawer = () => {
-  const drawer = document.getElementById('stats-drawer');
+  const drawer = document.getElementById('sh_stats-drawer');
   if (!drawer) return;
-  drawer.classList.remove('open');
+  drawer.classList.remove('sh_open');
 };
 
 const resetDrawerState = () => {
   showLoader();
   setLoader('Starting…');
-  const cards = document.getElementById('stats-cards');
-  const activity = document.getElementById('activity');
-  const grid = document.getElementById('activity-grid');
-  const xTop = document.getElementById('x-axis-top');
-  const error = document.getElementById('stats-error');
+  const cards = document.getElementById('sh_stats-cards');
+  const activity = document.getElementById('sh_activity');
+  const grid = document.getElementById('sh_activity-grid');
+  const xTop = document.getElementById('sh_x-axis-top');
+  const error = document.getElementById('sh_stats-error');
   if (cards) {
-    cards.classList.add('hidden');
+    cards.classList.add('sh_hidden');
     cards.innerHTML = '';
   }
-  if (activity) activity.classList.add('hidden');
+  if (activity) activity.classList.add('sh_hidden');
   if (grid) grid.innerHTML = '';
   if (xTop) xTop.innerHTML = '';
   if (error) {
-    error.classList.add('hidden');
+    error.classList.add('sh_hidden');
     error.textContent = '';
   }
 };
 
 const statCard = (label, display, title, hint = '') => `
-  <div class="stat" title="${title}">
-    <div class="label">${label}</div>
-    <div class="value" data-tooltip="${title}">${display}</div>
-    ${hint ? `<div class="hint">${hint}</div>` : ''}
+  <div class="sh_stat" title="${title}">
+    <div class="sh_label">${label}</div>
+    <div class="sh_value" data-tooltip="${title}">${display}</div>
+    ${hint ? `<div class="sh_hint">${hint}</div>` : ''}
   </div>
 `;
 
 const renderStats = (stats) => {
   hideLoader();
-  const cards = document.getElementById('stats-cards');
-  cards.classList.remove('hidden');
+  const cards = document.getElementById('sh_stats-cards');
+  cards.classList.remove('sh_hidden');
   cards.innerHTML = `
-    <div class="stat-grid">
+    <div class="sh_stat-grid">
       ${statCard(
         'Sample Size',
         fmtCompact(stats.sampleSize),
@@ -567,7 +569,7 @@ const renderStats = (stats) => {
       )}
     </div>
   `;
-  cards.querySelectorAll('.value').forEach((el) => {
+  cards.querySelectorAll('.sh_value').forEach((el) => {
     el.addEventListener('mouseenter', (e) =>
       showTooltip(el.getAttribute('data-tooltip') || '', e.clientX, e.clientY),
     );
@@ -580,17 +582,17 @@ const renderStats = (stats) => {
 
 const renderActivity = (posts) => {
   const { series, max } = computeDailyCounts(posts, DAYS_WINDOW);
-  const activityWrap = document.getElementById('activity');
-  const grid = document.getElementById('activity-grid');
-  const xTop = document.getElementById('x-axis-top');
-  activityWrap.classList.remove('hidden');
+  const activityWrap = document.getElementById('sh_activity');
+  const grid = document.getElementById('sh_activity-grid');
+  const xTop = document.getElementById('sh_x-axis-top');
+  activityWrap.classList.remove('sh_hidden');
 
-  xTop.classList.add('fullwidth');
-  grid.classList.add('fullwidth');
+  xTop.classList.add('sh_fullwidth');
+  grid.classList.add('sh_fullwidth');
 
   const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   xTop.innerHTML = weekdays
-    .map((d) => `<div class="x-top-tick">${d}</div>`)
+    .map((d) => `<div class="sh_x-top-tick">${d}</div>`)
     .join('');
 
   const firstIdx = series.length ? (series[0].date.getDay() + 6) % 7 : 0;
@@ -598,7 +600,7 @@ const renderActivity = (posts) => {
   grid.innerHTML = '';
   for (let i = 0; i < firstIdx; i++) {
     const cell = document.createElement('div');
-    cell.className = 'cell empty';
+    cell.className = 'sh_cell sh_empty';
     grid.appendChild(cell);
   }
 
@@ -606,7 +608,7 @@ const renderActivity = (posts) => {
   for (const d of series) {
     const lvl = levelFor(d.count, max);
     const cell = document.createElement('div');
-    cell.className = `cell level-${lvl}`;
+    cell.className = `sh_cell sh_level-${lvl}`;
     const dateStr = `${monthFmt.format(
       d.date,
     )} ${d.date.getDate()}, ${d.date.getFullYear()}`;
@@ -626,9 +628,9 @@ const renderActivity = (posts) => {
 
 const showError = (message) => {
   hideLoader();
-  const error = document.getElementById('stats-error');
+  const error = document.getElementById('sh_stats-error');
   if (error) {
-    error.classList.remove('hidden');
+    error.classList.remove('sh_hidden');
     error.textContent = message;
   }
 };
@@ -670,9 +672,9 @@ const fetchAndRenderStats = async (force = false) => {
 
 // --- Entry button ------------------------------------------------------------
 const buildButtonUI = () => {
-  if (document.getElementById('stats-floating-btn')) return;
+  if (document.getElementById('sh_stats-floating-btn')) return;
   const button = document.createElement('button');
-  button.id = 'stats-floating-btn';
+  button.id = 'sh_stats-floating-btn';
   button.textContent = 'View Stats';
   button.addEventListener('click', () => fetchAndRenderStats(false));
   document.body.appendChild(button);
